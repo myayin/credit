@@ -1,6 +1,9 @@
 package com.colendi.credit.service.installment;
 
 import com.colendi.credit.dto.InstallmentDto;
+import com.colendi.credit.dto.request.InstallmentPaymentRequest;
+import com.colendi.credit.dto.response.InstallmentPaymentResponse;
+import com.colendi.credit.exception.ColendiException;
 import com.colendi.credit.model.Credit;
 import com.colendi.credit.model.Installment;
 import java.math.BigDecimal;
@@ -16,4 +19,6 @@ public interface InstallmentService {
     List<InstallmentDto> getInstallmentDtos(List<Installment> installments);
 
     Instant calculateDueDate(Instant startInstant, int installmentNumber);
+
+    InstallmentPaymentResponse pay(InstallmentPaymentRequest request) throws ColendiException;
 }
