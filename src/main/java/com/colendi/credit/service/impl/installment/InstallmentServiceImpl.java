@@ -147,6 +147,4 @@ public class InstallmentServiceImpl implements InstallmentService {
         installmentRepository.saveAll(installmentList);
         return getInstallmentDtos(installments);
     }
-
-
 }
