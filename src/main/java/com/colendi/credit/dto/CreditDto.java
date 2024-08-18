@@ -12,6 +12,8 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class CreditDto {
 
+    private Long id;
+
     private BigDecimal creditAmount;
 
     private String currency;
