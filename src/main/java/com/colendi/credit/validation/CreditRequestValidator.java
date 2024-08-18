@@ -31,4 +31,10 @@ public class CreditRequestValidator {
             throw new ColendiException(E_INVALID_CREDIT_TYPE.name(), E_INVALID_CREDIT_TYPE.getMessage());
         }
     }
+
+    public static void validateGetCredit(Long userId) throws ColendiException {
+        if (Objects.isNull(userId)) {
+            throw new ColendiException(E_INVALID_USER_ID.name(), E_INVALID_USER_ID.getMessage());
+        }
+    }
 }
