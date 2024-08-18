@@ -1,0 +1,19 @@
+package com.colendi.credit.service.installment;
+
+import com.colendi.credit.dto.InstallmentDto;
+import com.colendi.credit.model.Credit;
+import com.colendi.credit.model.Installment;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+
+public interface InstallmentService {
+
+    BigDecimal calculateInstallmentAmount(Credit credit, Integer numberOfInstallment);
+
+    List<Installment> saveAll(List<Installment> installments);
+
+    List<InstallmentDto> getInstallmentDtos(List<Installment> installments);
+
+    Instant calculateDueDate(Instant startInstant, int installmentNumber);
+}
