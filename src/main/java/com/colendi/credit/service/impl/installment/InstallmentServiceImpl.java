@@ -23,6 +23,7 @@ import com.colendi.credit.service.PaymentService;
 import com.colendi.credit.service.installment.InstallmentService;
 import com.colendi.credit.service.installment.InstallmentTransactionService;
 import com.colendi.credit.util.DateUtil;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
@@ -33,6 +34,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -51,7 +53,7 @@ public class InstallmentServiceImpl implements InstallmentService {
 
     @Override
     public BigDecimal calculateInstallmentAmount(Credit credit, Integer numberOfInstallment) {
-        return credit.getCreditAmount().divide(BigDecimal.valueOf(numberOfInstallment), RoundingMode.HALF_UP);
+        return credit.getCreditAmount().divide(BigDecimal.valueOf(numberOfInstallment), 2, RoundingMode.HALF_UP);
     }
 
     @Override
@@ -79,13 +81,11 @@ public class InstallmentServiceImpl implements InstallmentService {
     }
 
     private Installment findByIdAndStatus(Long id, BasicStatusEnum basicStatusEnum) throws ColendiException {
-        return installmentRepository.findByIdAndStatus(id, basicStatusEnum.name()).orElseThrow(
-                () -> new ColendiException(E_INSTALLMENT_NOT_FOUND.name(), E_INSTALLMENT_NOT_FOUND.getMessage()));
+        return installmentRepository.findByIdAndStatus(id, basicStatusEnum.name()).orElseThrow(() -> new ColendiException(E_INSTALLMENT_NOT_FOUND.name(), E_INSTALLMENT_NOT_FOUND.getMessage()));
     }
 
     private void updateCreditStatusIfNeeded(Credit credit) {
-        List<Installment> remainingInstallments = credit.getInstallments().stream()
-                .filter(i -> ACTIVE.name().equals(i.getStatus())).toList();
+        List<Installment> remainingInstallments = credit.getInstallments().stream().filter(i -> ACTIVE.name().equals(i.getStatus())).toList();
         if (remainingInstallments.isEmpty()) {
             credit.setModifiedDate(new Date().toInstant());
             credit.setStatus(PASSIVE.name());
@@ -105,18 +105,12 @@ public class InstallmentServiceImpl implements InstallmentService {
         }
     }
 
-    private void validateInstalment(InstallmentPaymentRequest request, Installment installment)
-            throws ColendiException {
-        if (!request.getCreditId().equals(installment.getCredit().getId()) || !request.getUserId()
-                .equals(installment.getCredit().getUser().getId()) || !request.getCurrency()
-                .equals(installment.getCurrency())) {
+    private void validateInstalment(InstallmentPaymentRequest request, Installment installment) throws ColendiException {
+        if (!request.getCreditId().equals(installment.getCredit().getId()) || !request.getUserId().equals(installment.getCredit().getUser().getId()) || !request.getCurrency().equals(installment.getCurrency())) {
             throw new ColendiException(E_INSTALLMENT_NOT_FOUND.name(), E_INSTALLMENT_NOT_FOUND.getMessage());
         }
-        if (installment.getDueDate().isBefore(DateUtil.resetTime(new Date())) && installment.getLateFeeCalculatedDate()
-                .isBefore(
-                        DateUtil.resetTime(new Date()))) {
-            throw new ColendiException(E_INTEREST_CALCULATION_IN_PROGRESS.name(),
-                    E_INTEREST_CALCULATION_IN_PROGRESS.getMessage());
+        if (installment.getDueDate().isBefore(DateUtil.resetTime(new Date())) && installment.getLateFeeCalculatedDate().isBefore(DateUtil.resetTime(new Date()))) {
+            throw new ColendiException(E_INTEREST_CALCULATION_IN_PROGRESS.name(), E_INTEREST_CALCULATION_IN_PROGRESS.getMessage());
         }
     }
 
