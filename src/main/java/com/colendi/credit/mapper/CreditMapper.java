@@ -18,12 +18,13 @@ public class CreditMapper {
             return null;
         }
         CreditDto creditDto = new CreditDto();
+        creditDto.setId(credit.getId());
         creditDto.setCreditAmount(credit.getCreditAmount());
         creditDto.setCurrency(credit.getCurrency());
         creditDto.setStatus(credit.getStatus());
         creditDto.setCreatedDate(credit.getCreatedDate());
         List<Installment> installments = credit.getInstallments();
-        long remainingInstallmentCount = installments.stream().filter(i -> BasicStatusEnum.PASSIVE.name().equals(i.getStatus())).count();
+        long remainingInstallmentCount = installments.stream().filter(i -> BasicStatusEnum.ACTIVE.name().equals(i.getStatus())).count();
         creditDto.setRemainingInstallmentCount(remainingInstallmentCount);
         creditDto.setTotalInstallmentCount(installments.size());
         return creditDto;
