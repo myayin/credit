@@ -18,8 +18,6 @@ public class CreditDto {
 
     private String status;
 
-    private String userId;
-
     private Integer totalInstallmentCount;
 
     private Long remainingInstallmentCount;
