@@ -1,5 +1,6 @@
 package com.colendi.credit.service.impl.installment;
 
+import static com.colendi.credit.constants.CreditConstants.LATE_PAYMENT_INTEREST_RATE;
 import static com.colendi.credit.constants.CreditConstants.calculateInstallmentDueDateValue;
 import static com.colendi.credit.constants.CreditResponseCodes.E_INSTALLMENT_NOT_FOUND;
 import static com.colendi.credit.constants.CreditResponseCodes.E_INTEREST_CALCULATION_IN_PROGRESS;
@@ -17,6 +18,7 @@ import com.colendi.credit.model.Installment;
 import com.colendi.credit.model.Payment;
 import com.colendi.credit.model.enums.BasicStatusEnum;
 import com.colendi.credit.repository.InstallmentRepository;
+import com.colendi.credit.service.ConfigService;
 import com.colendi.credit.service.PaymentService;
 import com.colendi.credit.service.installment.InstallmentService;
 import com.colendi.credit.service.installment.InstallmentTransactionService;
@@ -27,10 +29,12 @@ import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -42,6 +46,8 @@ public class InstallmentServiceImpl implements InstallmentService {
     private final PaymentService paymentService;
 
     private final InstallmentTransactionService installmentTransactionService;
+
+    private final ConfigService configService;
 
     @Override
     public BigDecimal calculateInstallmentAmount(Credit credit, Integer numberOfInstallment) {
@@ -132,5 +138,21 @@ public class InstallmentServiceImpl implements InstallmentService {
         }
         return date;
     }
+
+    public List<InstallmentDto> saveLateFee(Pageable pageable) throws ColendiException {
+        List<Installment> installments = installmentRepository.findByDueDateBeforeAndStatusAndLateFeeCalculatedDateBefore(DateUtil.resetTime(new Date()), ACTIVE.name(), DateUtil.resetTime(new Date()), pageable);
+        BigDecimal interestRate = configService.findByKey(LATE_PAYMENT_INTEREST_RATE).divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP);
+        final List<Installment> installmentList = new ArrayList<>();
+        installments.forEach(installment -> {
+            long delinquentDays = ChronoUnit.DAYS.between(installment.getDueDate(), new Date().toInstant());
+            BigDecimal lateFee = BigDecimal.valueOf(delinquentDays).multiply(interestRate).multiply(installment.getAmount()).divide(BigDecimal.valueOf(360), 2, RoundingMode.HALF_UP);
+            installment.setAccumulatedLateFee(lateFee);
+            installment.setLateFeeCalculatedDate(DateUtil.resetTime(new Date()));
+            installmentList.add(installment);
+        });
+        installmentRepository.saveAll(installmentList);
+        return getInstallmentDtos(installments);
+    }
+
 
 }

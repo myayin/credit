@@ -9,6 +9,7 @@ import com.colendi.credit.model.Installment;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 public interface InstallmentService {
 
@@ -21,4 +22,7 @@ public interface InstallmentService {
     Instant calculateDueDate(Instant startInstant, int installmentNumber);
 
     InstallmentPaymentResponse pay(InstallmentPaymentRequest request) throws ColendiException;
+
+    List<InstallmentDto> saveLateFee(Pageable pageable) throws ColendiException;
+
 }
