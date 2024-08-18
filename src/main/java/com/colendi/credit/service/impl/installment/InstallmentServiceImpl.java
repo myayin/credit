@@ -34,6 +34,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -109,7 +110,9 @@ public class InstallmentServiceImpl implements InstallmentService {
         if (!request.getCreditId().equals(installment.getCredit().getId()) || !request.getUserId().equals(installment.getCredit().getUser().getId()) || !request.getCurrency().equals(installment.getCurrency())) {
             throw new ColendiException(E_INSTALLMENT_NOT_FOUND.name(), E_INSTALLMENT_NOT_FOUND.getMessage());
         }
-        if (installment.getDueDate().isBefore(DateUtil.resetTime(new Date())) && installment.getLateFeeCalculatedDate().isBefore(DateUtil.resetTime(new Date()))) {
+        if (installment.getDueDate().isBefore(DateUtil.resetTime(new Date()))
+                && (Objects.isNull(installment.getLateFeeCalculatedDate())
+                || installment.getLateFeeCalculatedDate().isBefore(DateUtil.resetTime(new Date())))) {
             throw new ColendiException(E_INTEREST_CALCULATION_IN_PROGRESS.name(), E_INTEREST_CALCULATION_IN_PROGRESS.getMessage());
         }
     }
